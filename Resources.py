@@ -46,7 +46,6 @@ class Task:
     def __init__(self):
 
     def next(self, Resource):
-        Resource.__getattribute__()
 
 
 class System:
