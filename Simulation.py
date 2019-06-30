@@ -1,15 +1,17 @@
-import Resources
+import Resources, Link
 
 
 class Simulation:
     def __init__(self, k):
-        aux = input('Stepen multiprogramiranja: ')
-        self.n = int(aux)
-        cond = input('Podrazumevano vreme simulacije je 18h, promeniti ? [y/n] ')
-        if cond == 'y':
-            self.time = input('Unesite vreme simulacije u minutima: ')
-        else:
-            self.time = 1080
+        #aux = input('Stepen multiprogramiranja: ')
+        #self.n = int(aux)
+        #cond = input('Podrazumevano vreme simulacije je 18h, promeniti ? [y/n] ')
+        #if cond == 'y':
+        #    self.time = int(input('Unesite vreme simulacije u minutima: '))
+        #else:
+        #    self.time = 1080
+        self.time = 10
+        self.n = 5
 
         # initializing
         self.CPU = Resources.CPU(0.005, self.time, 0)
@@ -24,19 +26,48 @@ class Simulation:
             ud.set_k(k)
 
         # linking resources
-        #aux = self.UserDiscList.append(self.SysDisc1)  # MOZDA GRESKA !!!!!!!!!!!!!!!
-        #aux.append(self.SysDisc2)
-        self.CPU.append_resources([self.UserDiscList, self.SysDisc2, self.SysDisc1])
-        self.SysDisc1.append_resources(self.CPU, self.UserDiscList)
-        self.SysDisc2.append_resources(self.CPU, self.UserDiscList)
+        '''
+        k+2 links for cpu
+        k+1 links for 1 sysdisc
+        1 link for userdisc
+        '''
+        self.cpu_links = []
+        for i in range(k):
+            li = Link.Link(self.CPU, self.UserDiscList[i])
+            li.getx();
+
+            self.cpu_links.append(li)
+        self.cpu_links.append(Link.Link(self.CPU, self.SysDisc1))
+        self.cpu_links.append(Link.Link(self.CPU, self.SysDisc2))
+
+        self.sys1_links = []
+        for i in range(k):
+            self.sys1_links.append(Link.Link(self.SysDisc1, self.UserDiscList[i]))
+        self.sys1_links.append(Link.Link(self.SysDisc1, self.CPU))
+
+        self.sys2_links = []
+        for i in range(k):
+            self.sys2_links.append(Link.Link(self.SysDisc2, self.UserDiscList[i]))
+        self.sys2_links.append(Link.Link(self.SysDisc2, self.CPU))
+
+        #self.user_links = [[Link.Link(self.UserDiscList[i], self.CPU) for i in range(k)]]
+        self.user_link = []
+        for i in range(k):
+            self.user_link.append(Link.Link(self.UserDiscList[i], self.CPU))
+
+        self.CPU.add_links(self.cpu_links)
+        self.SysDisc1.add_links(self.sys1_links)
+        self.SysDisc2.add_links(self.sys2_links)
+        print(len(self.UserDiscList))
         for ud in self.UserDiscList:
-            ud.append_resources(self.CPU)
+            ud.add_links([Link.Link(ud, self.CPU)])
 
         #loading jobs
         for i in range(self.n):
             self.jobList = [Resources.Job() for _ in range(self.n)]
         for j in self.jobList:
             self.CPU.accept_job(j)
+        print('Initilization done')
 
     def run_simulation(self, k):
         for ud in self.UserDiscList:
