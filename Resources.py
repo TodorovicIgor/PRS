@@ -1,5 +1,5 @@
 from threading import Thread
-import Queue, Num
+import Queue, Num, Link
 
 '''
 id = x
@@ -22,7 +22,7 @@ class Resource(Thread):
         self.elapsed_time = 0
         self.total = total_time
         self.is_working = 0  # start working in run()
-        self.next_resources = [Resource]
+        self.links = []
         self.k = 0
         self.jobs_done = 0
         Thread.__init__(self)
@@ -36,9 +36,9 @@ class Resource(Thread):
     def get_id(self):
         return self.id
 
-    def append_resources(self, *resources):
-        for res in resources:
-            self.next_resources.append(res)
+    def append_resources(self, *links):
+        for i in links:
+            self.links.append(i)
 
     def accept_job(self, job):
         if self.id == 0:  # cpu
@@ -55,7 +55,7 @@ class Resource(Thread):
             if self.elapsed_time > self.total:  # simulation over
                 self.is_working = 0
             else:
-                self.calc_next().accept_job(job)
+                self.calc_next().transfer_job(job)
         print("Resource with id = ", self.get_id(), "is finished")
         '''TODO writing to file'''
 
@@ -80,14 +80,14 @@ class SysDisc(Resource):
         rand = Num.random()
         if 0 <= rand < 0.5:
             # finding cpu, id=0
-            for res in self.next_resources:
-                if res.get_id() == 0: return res
+            for link in self.links:
+                if link.get_id() == 0: return link
         else:
             # finding UserDisc
             rand -= 0.5  # rand is > 0  and < 0.5
             aux = divmod(rand, 0.5/self.k)[0] + 3  # formatting for id -> uniform(0 to k)+3
-            for res in self.next_resources:
-                if res.get_id() == aux: return res
+            for link in self.links:
+                if link.get_id() == aux: return link
 
 
 class UserDisc(Resource):
@@ -99,8 +99,8 @@ class UserDisc(Resource):
         '''
         100% cpu
         '''
-        for res in self.next_resources:
-            if res.get_id() == 0: return res
+        for link in self.links:
+            if link.get_id() == 0: return link
 
 
 class CPU(Resource):
@@ -116,16 +116,16 @@ class CPU(Resource):
         '''
         rand = Num.random()
         if 0 <= rand < 0.15:
-            for res in self.next_resources:
-                if res.get_id() == 1: return res
+            for link in self.links:
+                if link.get_id() == 1: return link
         if 0 <= rand < 0.3:
-            for res in self.next_resources:
-                if res.get_id() == 1: return res
+            for link in self.links:
+                if link.get_id() == 1: return link
         else:
             rand -= 0.3  # rand is > 0  and < 0.7
             aux = divmod(rand, 0.7 / self.k)[0] + 3  # formatting for id -> uniform(0 to k)+3
-            for i in range(len(self.next_resources)):
-                if self.next_resources[i].get_id() == aux: return self.next_resources[i]
+            for link in self.links:
+                if link.get_id() == aux: return link
 
 
 class Job:
