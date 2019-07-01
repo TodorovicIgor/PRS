@@ -1,4 +1,4 @@
-import Resources, Link
+import Resources
 
 
 class Simulation:
@@ -10,7 +10,7 @@ class Simulation:
         #    self.time = int(input('Unesite vreme simulacije u minutima: '))
         #else:
         #    self.time = 1080
-        self.time = 10
+        self.time = 20
         self.n = 5
 
         # initializing
@@ -26,48 +26,31 @@ class Simulation:
             ud.set_k(k)
 
         # linking resources
-        '''
-        k+2 links for cpu
-        k+1 links for 1 sysdisc
-        1 link for userdisc
-        '''
-        self.cpu_links = []
-        for i in range(k):
-            li = Link.Link(self.CPU, self.UserDiscList[i])
-            self.cpu_links.append(li)
-        self.cpu_links.append(Link.Link(self.CPU, self.SysDisc1))
-        self.cpu_links.append(Link.Link(self.CPU, self.SysDisc2))
-
-
-
-        self.sys1_links = []
-        for i in range(k):
-            self.sys1_links.append(Link.Link(self.SysDisc1, self.UserDiscList[i]))
-        self.sys1_links.append(Link.Link(self.SysDisc1, self.CPU))
-
-        self.sys2_links = []
-        for i in range(k):
-            self.sys2_links.append(Link.Link(self.SysDisc2, self.UserDiscList[i]))
-        self.sys2_links.append(Link.Link(self.SysDisc2, self.CPU))
-
-        #self.user_links = [[Link.Link(self.UserDiscList[i], self.CPU) for i in range(k)]]
-        self.user_link = []
-        for i in range(k):
-            self.user_link.append(Link.Link(self.UserDiscList[i], self.CPU))
-
-        self.CPU.add_links(self.cpu_links)
-        self.SysDisc1.add_links(self.sys1_links)
-        self.SysDisc2.add_links(self.sys2_links)
-        print(len(self.UserDiscList))
+        self.cpu_next_res = []
+        self.cpu_next_res.append(self.SysDisc1)
+        self.cpu_next_res.append(self.SysDisc2)
         for ud in self.UserDiscList:
-            ud.add_links([Link.Link(ud, self.CPU)])
+            self.cpu_next_res.append(ud)
+        self.CPU.add_res(self.cpu_next_res)
+
+        self.sys_next_res = []
+        self.sys_next_res.append(self.CPU)
+        for ud in self.UserDiscList:
+            self.sys_next_res.append(ud)
+        self.SysDisc1.add_res(self.sys_next_res)
+        self.SysDisc2.add_res(self.sys_next_res)
+
+        self.user_next_res = []
+        for ud in self.UserDiscList:
+            self.user_next_res.append(self.CPU)
+            ud.add_res(self.user_next_res)
 
         #loading jobs
         for i in range(self.n):
             self.jobList = [Resources.Job() for _ in range(self.n)]
         for j in self.jobList:
             self.CPU.accept_job(j)
-        print('Initilization done')
+        print('Initialization done')
 
     def run_simulation(self, k):
         for ud in self.UserDiscList:

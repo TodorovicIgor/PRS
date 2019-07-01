@@ -1,7 +1,6 @@
 from threading import Thread
 import Queue
 import Num
-import Link
 
 '''
 id = x
@@ -24,7 +23,7 @@ class Resource(Thread):
         self.elapsed_time = 0
         self.total = total_time
         self.is_working = 0  # start working in run()
-        self.links = []
+        self.next_res = []
         self.k = 0
         self.jobs_done = 0
         Thread.__init__(self)
@@ -38,27 +37,46 @@ class Resource(Thread):
     def getx(self):
         return self.x
 
-    def add_links(self, *links):
-        for i in links:
-            self.links. append(i)
+    def add_res(self, *res):
+        for i in res:
+            self.next_res.append(i)
 
     def accept_job(self, job):
         if self.x == 0:  # cpu
             job.compute_avg(self.elapsed_time)
         self.queue.append(job)
 
+    def load_next_res_with_dummies(self):
+        for i in self.next_res:
+            for res in i:
+                res.accept_job(Job(1))
+
     def run(self):
         self.is_working = 1
         while self.is_working == 1:
-            print('id = ', self.getx(), 'is working ')
-            job = self.queue.take()
-            self.jobs_done += 1
-            self.elapsed_time += Num.exponential(self.beta)
-            if self.elapsed_time > self.total:  # simulation over
-                self.is_working = 0
+            # print('id = ', self.getx(), 'is working ')
+            '''
+            queue is not finished and job is not dummy and elapsed time > total
+            '''
+            if not self.queue.is_finished():
+                job = self.queue.take()
+                if job.is_dummy():
+                    print("Resource with id =", self.x, "is finished, time busy is ", self.elapsed_time)
+                    self.is_working = 0
+                    self.load_next_res_with_dummies()
+                else:
+                    self.jobs_done += 1
+                    self.elapsed_time += Num.exponential(self.beta)
+                    if (self.elapsed_time > self.total) or self.queue.is_finished():  # cpu is done
+                        print("Resource with id =", self.x, "is finished, time busy is ", self.elapsed_time)
+                        self.is_working = 0
+                        self.load_next_res_with_dummies()
+                    else:
+                        self.calc_next().accept_job(job)
             else:
-                self.calc_next().transfer_job(job)
-        print("Resource with id = ", self.x(), "is finished")
+                self.is_working = 0
+                print("Resource with id =", self.x, "is finished, time busy is ", self.elapsed_time)
+
         '''TODO writing to file'''
 
     def calc_next(self):
@@ -81,18 +99,18 @@ class SysDisc(Resource):
         rand = Num.random()
         if 0 <= rand < 0.5:
             # finding cpu, id=0
-            for i in self.links:
-                for link in i:
-                    if link.getx() == 0:
-                        return link
+            for i in self.next_res:
+                for res in i:
+                    if res.getx() == 0:
+                        return res
         else:
             # finding UserDisc
             rand -= 0.5  # rand is > 0  and < 0.5
             aux = divmod(rand, 0.5/self.k)[0] + 3  # formatting for id -> uniform(0 to k)+3
-            for i in self.links:
-                for link in i:
-                    if link.getx() == aux:
-                        return link
+            for i in self.next_res:
+                for res in i:
+                    if res.getx() == aux:
+                        return res
 
 
 class UserDisc(Resource):
@@ -104,10 +122,10 @@ class UserDisc(Resource):
         '''
         100% cpu
         '''
-        for i in self.links:
-            for link in i:
-                if link.getx() == 0:
-                    return link
+        for i in self.next_res:
+            for res in i:
+                if res.getx() == 0:
+                    return res
 
 
 class CPU(Resource):
@@ -122,36 +140,37 @@ class CPU(Resource):
         70% some of user discs
         '''
         rand = Num.random()
-        for i in self.links:
-            for link in i:
-                link.getx()
 
         if 0 <= rand < 0.15:
-            for i in self.links:
-                for link in i:
-                    if link.getx() == 1:
-                        return link
-        if 0 <= rand < 0.3:
-            for i in self.links:
-                for link in i:
-                    if link.getx() == 1:
-                        return link
+            for i in self.next_res:
+                for res in i:
+                    if res.getx() == 1:
+                        return res
+        if 0.15 <= rand < 0.3:
+            for i in self.next_res:
+                for res in i:
+                    if res.getx() == 2:
+                        return res
         else:
             rand -= 0.3  # rand is > 0  and < 0.7
             aux = divmod(rand, 0.7 / self.k)[0] + 3  # formatting for id -> uniform(0 to k)+3
-            for i in self.links:
-                for link in i:
-                    if link.getx() == aux:
-                        return link
+            for i in self.next_res:
+                for res in i:
+                    if res.getx() == aux:
+                        return res
 
 
 class Job:
 
-    def __init__(self):
+    def __init__(self, dummy=0):
+        self.dummy = dummy
         self.last_cpu_enter = -1
         self.avg_sum = 0
         self.avg_num = 0
         self.avg = 0
+
+    def is_dummy(self):
+        return self.dummy
 
     def compute_avg(self, elapsed_time):
         if self.last_cpu_enter != -1:
