@@ -117,12 +117,15 @@ class CPU(Resource):
         70% some of user discs
         '''
         rand = Num.random()
+        for link in self.links:
+            print(link.getx)
         if 0 <= rand < 0.15:
             for link in self.links:
                 if link.getx() == 1:
                     return link
         if 0 <= rand < 0.3:
             for link in self.links:
+
                 if link.getx() == 1:
                     return link
         else:
