@@ -3,15 +3,15 @@ import Resources
 
 class Simulation:
     def __init__(self, k):
-        #aux = input('Stepen multiprogramiranja: ')
-        #self.n = int(aux)
-        #cond = input('Podrazumevano vreme simulacije je 18h, promeniti ? [y/n] ')
-        #if cond == 'y':
-        #    self.time = int(input('Unesite vreme simulacije u minutima: '))
-        #else:
-        #    self.time = 1080
-        self.time = 20
-        self.n = 5
+        aux = input('Stepen multiprogramiranja: ')
+        self.n = int(aux)
+        cond = input('Podrazumevano vreme simulacije je 18h, promeniti ? [y/n] ')
+        if cond == 'y':
+            self.time = int(input('Unesite vreme simulacije u minutima: '))
+        else:
+            self.time = 1080
+        # self.time = 20
+        # self.n = 5
 
         # initializing
         self.CPU = Resources.CPU(0.005, self.time, 0)
@@ -50,6 +50,12 @@ class Simulation:
             self.jobList = [Resources.Job() for _ in range(self.n)]
         for j in self.jobList:
             self.CPU.accept_job(j)
+
+        # file variable
+        self.f1 = open("out1.txt", "w+")
+        header = "Stepen multiprogramiranja = "+str(self.n)+", vreme simulacije u minutima = "+str(self.time)
+        self.f1.write(header)
+        self.f1.close()
         print('Initialization done')
 
     def run_simulation(self, k):
@@ -67,7 +73,13 @@ class Simulation:
 
         print('Simulation over')
 
+        # writing to file
+        f1 = open("out1.txt", "a+")
+        f1.write("Simulation over")
+
+
 
 s = Simulation(5)
 s.run_simulation(4)
+
 

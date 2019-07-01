@@ -3,7 +3,6 @@ import Queue
 import Num
 
 '''
-id = x
 x = 0           CPU
 x = 1,2         SysDisc
 x = 3, .. k+3   UserDisc
@@ -14,7 +13,8 @@ class Resource(Thread):
     '''
     usage = total_time / elapsed_time
     flow = jobs_done / elapsed_time
-    average job number =
+    response time = avg from jobs
+    average job number = response * flow
     '''
     def __init__(self, beta, total_time, x):
         self.x = x
@@ -27,6 +27,12 @@ class Resource(Thread):
         self.k = 0
         self.jobs_done = 0
         Thread.__init__(self)
+
+    def get_usage(self):
+        return self.total/self.elapsed_time
+
+    def get_flow(self):
+        return self.jobs_done/self.elapsed_time
 
     def set_k(self, k):
         self.k = k
@@ -76,7 +82,10 @@ class Resource(Thread):
             else:
                 self.is_working = 0
                 print("Resource with id =", self.x, "is finished, time busy is ", self.elapsed_time)
-
+        # sim is done, checking jobs in queue
+        for elem in self.queue.d:
+            if not elem.is_dummy():
+                elem.compute_glob_avg()
         '''TODO writing to file'''
 
     def calc_next(self):
@@ -84,6 +93,38 @@ class Resource(Thread):
         overridden in children
         """
         pass
+
+
+class CPU(Resource):
+
+    def __init__(self, beta, total_time, x):
+        Resource.__init__(self, beta, total_time, x)
+
+    def calc_next(self):
+        '''
+        15% system disc1
+        15% system disc2
+        70% some of user discs
+        '''
+        rand = Num.random()
+
+        if 0 <= rand < 0.15:
+            for i in self.next_res:
+                for res in i:
+                    if res.getx() == 1:
+                        return res
+        if 0.15 <= rand < 0.3:
+            for i in self.next_res:
+                for res in i:
+                    if res.getx() == 2:
+                        return res
+        else:
+            rand -= 0.3  # rand is > 0  and < 0.7
+            aux = divmod(rand, 0.7 / self.k)[0] + 3  # formatting for id -> uniform(0 to k)+3
+            for i in self.next_res:
+                for res in i:
+                    if res.getx() == aux:
+                        return res
 
 
 class SysDisc(Resource):
@@ -128,46 +169,17 @@ class UserDisc(Resource):
                     return res
 
 
-class CPU(Resource):
-
-    def __init__(self, beta, total_time, x):
-        Resource.__init__(self, beta, total_time, x)
-
-    def calc_next(self):
-        '''
-        15% system disc1
-        15% system disc2
-        70% some of user discs
-        '''
-        rand = Num.random()
-
-        if 0 <= rand < 0.15:
-            for i in self.next_res:
-                for res in i:
-                    if res.getx() == 1:
-                        return res
-        if 0.15 <= rand < 0.3:
-            for i in self.next_res:
-                for res in i:
-                    if res.getx() == 2:
-                        return res
-        else:
-            rand -= 0.3  # rand is > 0  and < 0.7
-            aux = divmod(rand, 0.7 / self.k)[0] + 3  # formatting for id -> uniform(0 to k)+3
-            for i in self.next_res:
-                for res in i:
-                    if res.getx() == aux:
-                        return res
-
-
 class Job:
+    # global average job time
+    avg_sum = 0
+    avg_num = 0
+    avg = 0
 
     def __init__(self, dummy=0):
         self.dummy = dummy
         self.last_cpu_enter = -1
         self.avg_sum = 0
         self.avg_num = 0
-        self.avg = 0
 
     def is_dummy(self):
         return self.dummy
@@ -178,6 +190,10 @@ class Job:
             self.last_cpu_enter = elapsed_time
             self.avg_num += 1
             self.avg_sum += time_diff
-            self.avg = self.avg_sum/self.avg_num
         else:
             self.last_cpu_enter = elapsed_time  # no computing at initial state
+
+    def compute_glob_avg(self):
+        Job.avg_num += self.avg_num
+        Job.avg_sum += self.avg_sum
+        Job.avg = Job.avg_sum/Job.avg_num
