@@ -1,5 +1,7 @@
 from threading import Thread
-import Queue, Num, Link
+import Queue
+import Num
+import Link
 
 '''
 id = x
@@ -38,7 +40,7 @@ class Resource(Thread):
 
     def add_links(self, *links):
         for i in links:
-            self.links.append(i)
+            self.links. append(i)
 
     def accept_job(self, job):
         if self.x == 0:  # cpu
@@ -55,15 +57,15 @@ class Resource(Thread):
             if self.elapsed_time > self.total:  # simulation over
                 self.is_working = 0
             else:
-                self.calc_next().Link.transfer_job(job)
+                self.calc_next().transfer_job(job)
         print("Resource with id = ", self.x(), "is finished")
         '''TODO writing to file'''
 
     def calc_next(self):
         """
-        overriden in children
+        overridden in children
         """
-        return Link
+        pass
 
 
 class SysDisc(Resource):
@@ -79,16 +81,18 @@ class SysDisc(Resource):
         rand = Num.random()
         if 0 <= rand < 0.5:
             # finding cpu, id=0
-            for link in self.links:
-                if link.getx() == 0:
-                    return link
+            for i in self.links:
+                for link in i:
+                    if link.getx() == 0:
+                        return link
         else:
             # finding UserDisc
             rand -= 0.5  # rand is > 0  and < 0.5
             aux = divmod(rand, 0.5/self.k)[0] + 3  # formatting for id -> uniform(0 to k)+3
-            for link in self.links:
-                if link.getx() == aux:
-                    return link
+            for i in self.links:
+                for link in i:
+                    if link.getx() == aux:
+                        return link
 
 
 class UserDisc(Resource):
@@ -100,9 +104,10 @@ class UserDisc(Resource):
         '''
         100% cpu
         '''
-        for link in self.links:
-            if link.getx() == 0:
-                return link
+        for i in self.links:
+            for link in i:
+                if link.getx() == 0:
+                    return link
 
 
 class CPU(Resource):
@@ -117,23 +122,27 @@ class CPU(Resource):
         70% some of user discs
         '''
         rand = Num.random()
-        for link in self.links:
-            print(link.getx)
-        if 0 <= rand < 0.15:
-            for link in self.links:
-                if link.getx() == 1:
-                    return link
-        if 0 <= rand < 0.3:
-            for link in self.links:
+        for i in self.links:
+            for link in i:
+                link.getx()
 
-                if link.getx() == 1:
-                    return link
+        if 0 <= rand < 0.15:
+            for i in self.links:
+                for link in i:
+                    if link.getx() == 1:
+                        return link
+        if 0 <= rand < 0.3:
+            for i in self.links:
+                for link in i:
+                    if link.getx() == 1:
+                        return link
         else:
             rand -= 0.3  # rand is > 0  and < 0.7
             aux = divmod(rand, 0.7 / self.k)[0] + 3  # formatting for id -> uniform(0 to k)+3
-            for link in self.links:
-                if link.getx() == aux:
-                    return link
+            for i in self.links:
+                for link in i:
+                    if link.getx() == aux:
+                        return link
 
 
 class Job:

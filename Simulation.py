@@ -38,6 +38,8 @@ class Simulation:
         self.cpu_links.append(Link.Link(self.CPU, self.SysDisc1))
         self.cpu_links.append(Link.Link(self.CPU, self.SysDisc2))
 
+
+
         self.sys1_links = []
         for i in range(k):
             self.sys1_links.append(Link.Link(self.SysDisc1, self.UserDiscList[i]))
