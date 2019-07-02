@@ -1,8 +1,65 @@
 import numpy
 
-def solveGN():
-    pass
 
+def solveGN(k):
+    '''
+    p00=0, p01=0.15, p02=0.15, p0[range(3, k+4)]=0.7/k
+    p10=0.5, p11=0, p12=0, p1[range(3, k+4)]=0.5/k
+    p20=0.5, p21=0, p22=0, p2[range(3, k+4)]=0.5/k
+    p[range 3, k+4]0=1, p[range 3, k+4]*=0
+
+    '''
+    mi0 = 1/0.005
+    mi1 = 1/0.012
+    mi2 = 1/0.015
+    mi_d = 1/0.02
+
+    coeff_matrix = []
+    first_row = [0.5*mi1, 0.5*mi2]
+    for i in range(2):
+        first_row.append(mi_d)
+    coeff_matrix.append(first_row)
+    for i in range(k+1):
+        row = []
+        for j in range(k+2):
+            if i>=2 and j<2:
+                if j==0:
+                    row.append((0.5/k)*mi1)
+                if j==1:
+                    row.append((0.5/k)*mi2)
+                continue
+            if i == j :
+                if j==0:
+                    row.append(-1*mi1)
+                    continue
+                if j==1:
+                    row.append(-1*mi2)
+                    continue
+                row.append(-1*mi_d)
+                continue
+            row.append(0)
+        coeff_matrix.append(row)
+
+    # testing
+    for i in coeff_matrix:
+        print(i)
+
+    ordinate = []
+    ordinate.append(mi0)
+    ordinate.append(-0.15*mi0)
+    ordinate.append(-0.15*mi0)
+    for i in range(k-1):
+        ordinate.append((-0.7/k)*mi0)
+    for i in ordinate:
+        print(i)
+
+    a = numpy.array(coeff_matrix)
+    b = numpy.array(ordinate)
+    solution = numpy.linalg.solve(a, b)
+    ret = [1]
+    for i in solution:
+        ret.append(i)
+    return ret
 
 def solveB(x, n):
     G = [0] * len(x)
@@ -14,7 +71,6 @@ def solveB(x, n):
     for j in range(1, len(x)):
         lastG[j] = G[j] * x[j] + lastG[j-1]
         G[j] /= lastG[j]
-    #print(lastG)
     return G
 
 
@@ -24,3 +80,4 @@ def exponential(b):
 
 def random():
     return numpy.random.random()
+
