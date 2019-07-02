@@ -28,11 +28,23 @@ class Resource(Thread):
         self.jobs_done = 0
         Thread.__init__(self)
 
+    def clear(self):
+        self.queue.d.clear()
+        self.elapsed_time = 0
+        self.k = 0
+        self.jobs_done = 0
+
+    def get_beta(self):
+        return self.beta
+
     def get_usage(self):
-        return self.total/self.elapsed_time
+        return self.elapsed_time/self.total
 
     def get_flow(self):
         return self.jobs_done/self.elapsed_time
+
+    def get_job_num(self, avg_job_num):
+        return self.get_flow()*avg_job_num
 
     def set_k(self, k):
         self.k = k
@@ -57,13 +69,37 @@ class Resource(Thread):
             for res in i:
                 res.accept_job(Job(1))
 
+    def write_statistics(self, f, avg_job_num):
+        string = "x = "+str(self.x)+", usage = "+str(self.get_usage())+" flow = "+str(self.get_flow())
+        string += " average job number = "+str(self.get_job_num(avg_job_num))
+        #string += "total time = "+str(self.total) + "time working = "+str(self.elapsed_time)
+        f.append_to_file(string)
+
     def run(self):
         self.is_working = 1
+        '''
         while self.is_working == 1:
-            # print('id = ', self.getx(), 'is working ')
-            '''
-            queue is not finished and job is not dummy and elapsed time > total
-            '''
+            if not self.queue.is_finished():
+                job = self.queue.take()
+                if job.is_dummy():
+                    print("Resource with id =", self.x, "is finished, time busy is ", self.elapsed_time)
+                    self.is_working = 0
+                    self.load_next_res_with_dummies()
+                else:
+                    self.jobs_done += 1
+                    self.elapsed_time += Num.exponential(self.beta)
+                    if (self.elapsed_time > self.total) or self.queue.is_finished():  # cpu is done
+                        print("Resource with id =", self.x, "is finished, time busy is ", self.elapsed_time)
+                        self.is_working = 0
+                        self.load_next_res_with_dummies()
+                    else:
+                        self.calc_next().accept_job(job)
+            else:
+                self.is_working = 0
+                print("Resource with id =", self.x, "is finished, time busy is ", self.elapsed_time)
+        # sim is done, checking jobs in queue
+        '''
+        while self.is_working == 1:
             if not self.queue.is_finished():
                 job = self.queue.take()
                 if job.is_dummy():
@@ -86,7 +122,6 @@ class Resource(Thread):
         for elem in self.queue.d:
             if not elem.is_dummy():
                 elem.compute_glob_avg()
-        '''TODO writing to file'''
 
     def calc_next(self):
         """

@@ -1,5 +1,5 @@
 from collections import deque
-from threading import Semaphore, Lock
+from threading import Semaphore
 
 
 class Fifo:
