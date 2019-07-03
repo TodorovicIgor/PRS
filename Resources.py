@@ -34,11 +34,17 @@ class Resource(Thread):
         self.k = 0
         self.jobs_done = 0
 
+    def get_beta(self):
+        return self.beta
+
     def get_usage(self):
         return self.elapsed_time/self.total
 
     def get_flow(self):
         return self.jobs_done/self.elapsed_time
+
+    def get_job_num(self, avg_job_num):
+        return self.get_flow()*avg_job_num
 
     def set_k(self, k):
         self.k = k
@@ -65,7 +71,7 @@ class Resource(Thread):
 
     def write_statistics(self, f, avg_job_num):
         string = "x = "+str(self.x)+", usage = "+str(self.get_usage())+" flow = "+str(self.get_flow())
-        string += " average job number = "+str(self.get_flow()*avg_job_num)
+        string += " average job number = "+str(self.get_job_num(avg_job_num))
         #string += "total time = "+str(self.total) + "time working = "+str(self.elapsed_time)
         f.append_to_file(string)
 
@@ -116,8 +122,6 @@ class Resource(Thread):
         for elem in self.queue.d:
             if not elem.is_dummy():
                 elem.compute_glob_avg()
-
-        '''TODO writing to file'''
 
     def calc_next(self):
         """

@@ -70,8 +70,6 @@ class Simulation:
         self.SysDisc2.join()
         self.CPU.join()
 
-        print('Simulation over, writing results...')
-
         header = "Stepen multiprogramiranja = " + str(n) + ", vreme simulacije u minutima = " + str(time)
         header += " broj korisnickih diskova = " + str(k) + ", odziv sistema = "+str(Resources.Job.avg)
         self.f1.append_to_file(header)
@@ -81,35 +79,119 @@ class Simulation:
         for ud in self.UserDiscList:
             ud.write_statistics(self.f1, Resources.Job.avg)
 
-        print("Simulation over, preparing resources for next simulation")
-        self.CPU.clear()
-        self.SysDisc1.clear()
-        self.SysDisc2.clear()
-        for ud in self.UserDiscList:
-            ud.clear()
-
 
 n = int(input('Stepen multiprogramiranja: '))
 cond = input('Podrazumevano vreme simulacije je 18h, promeniti ? [y/n] ')
-time = None
+time = 1080
 if cond == 'y':
     time = int(input('Unesite vreme simulacije u minutima: '))
 
 f2 = open("out2.txt", "w+")
 f3 = open("out3.txt", "w+")
+f4 = open("out4.txt", "w+")
 for k in range(2, 9):
     GN = Num.solveGN(k)
-    f2.write(str(GN))
+    f2.write(str(GN)+"\n")
     B = Num.solveB(GN, n)
-    f3.write(str(B))
 
-    f2.close()
-    f3.close()
     if cond == 'y':
         s = Simulation(n, k, time)
     else:
         s = Simulation(n, k)
     s.run_simulation()
 
+    header = "Stepen multiprogramiranja = " + str(n) + ", vreme simulacije u minutima = " + str(time)
+    header += " broj korisnickih diskova = " + str(k) + "\n"
+    f3.write(header)
+    f4.write(header)
+    for i in range(k+3):
+        if i == 0:
+            x = s.CPU.getx()
+            usage = GN[x] * B
+            flow = usage/s.CPU.get_beta()
+            avg_job_num = Num.get_j(GN, n, x)
+            response = avg_job_num / flow
+
+            sim_usage = s.CPU.get_usage()
+            sim_flow = s.CPU.get_flow()
+            sim_avg_job_num = s.CPU.get_job_num(Resources.Job.avg)
+            sim_response = Resources.Job.avg
+
+
+            string = "x= "+str(x)+", usage= "+str(usage)+ ", average job number ="+str(avg_job_num)+", flow="+str(flow)+", response="+str(response)+"\n"
+            string4 = "x= " + str(x) + ", usage= " + str(
+                (usage - sim_usage) / usage) + ", average job number =" + str(
+                (avg_job_num - sim_avg_job_num) / avg_job_num) + ", flow=" + str(
+                (flow - sim_flow) / flow) + ", response=" + str((response - sim_response) / response) + "\n"
+            f3.write(string)
+            f4.write(string4)
+            continue
+        if i == 1:
+            x = s.SysDisc1.getx()
+            usage = GN[x] * B
+            flow = usage / s.SysDisc1.get_beta()
+            avg_job_num = Num.get_j(GN, n, x)
+
+            sim_usage = s.SysDisc1.get_usage()
+            sim_flow = s.SysDisc1.get_flow()
+            sim_avg_job_num = s.SysDisc1.get_job_num(Resources.Job.avg)
+
+            string = "x= " + str(x) + ", usage= " + str(usage) +", flow="+str(flow)+ ", average job number =" + str(avg_job_num) + "\n"
+            string4 = "x= " + str(x) + ", usage= " + str(
+                (usage - sim_usage) / usage) + ", average job number =" + str(
+                (avg_job_num - sim_avg_job_num) / avg_job_num) + ", flow=" + str(
+                (flow - sim_flow) / flow) + "\n"
+            f3.write(string)
+            f4.write(string4)
+            continue
+        if i == 2:
+            x = s.SysDisc2.getx()
+            usage = GN[x] * B
+            flow = usage / s.SysDisc2.get_beta()
+            avg_job_num = Num.get_j(GN, n, x)
+
+            sim_usage = s.SysDisc2.get_usage()
+            sim_flow = s.SysDisc2.get_flow()
+            sim_avg_job_num = s.SysDisc2.get_job_num(Resources.Job.avg)
+
+            string = "x= " + str(x) + ", usage= " + str(usage) +", flow="+str(flow)+ ", average job number =" + str(avg_job_num) + "\n"
+            string4 = "x= " + str(x) + ", usage= " + str(
+                (usage - sim_usage) / usage) + ", average job number =" + str(
+                (avg_job_num - sim_avg_job_num) / avg_job_num) + ", flow=" + str(
+                (flow - sim_flow) / flow) + "\n"
+            f3.write(string)
+            f4.write(string4)
+            continue
+        # user disc
+        x = s.UserDiscList[i-3].getx()
+        usage = GN[i] * B
+        flow = usage / s.UserDiscList[i-3].get_beta()
+        avg_job_num = Num.get_j(GN, n, x)
+
+        sim_usage = s.UserDiscList[i-3].get_usage()
+
+        sim_flow = s.UserDiscList[i-3].get_flow()
+        sim_avg_job_num = s.UserDiscList[i-3].get_job_num(Resources.Job.avg)
+
+        string = "x= " + str(x) + ", usage= " + str(usage) +", flow="+str(flow)+ ", average job number =" + str(avg_job_num) + "\n"
+        string4 = "x= " + str(x) + ", usage= " + str(
+            (usage - sim_usage) / usage) + ", average job number =" + str(
+            (avg_job_num - sim_avg_job_num) / avg_job_num) + ", flow=" + str(
+            (flow - sim_flow) / flow) + "\n"
+        f3.write(string)
+        f4.write(string4)
+    f3.write("\n")
+    f4.write("\n")
+    s.CPU.clear()
+    s.SysDisc1.clear()
+    s.SysDisc2.clear()
+    for ud in s.UserDiscList:
+        ud.clear()
+
+
+print('Simulation over')
+f2.close()
+f3.close()
+f4.close()
 
 

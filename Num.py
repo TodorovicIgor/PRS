@@ -16,7 +16,7 @@ def solveGN(k):
 
     coeff_matrix = []
     first_row = [0.5*mi1, 0.5*mi2]
-    for i in range(2):
+    for i in range(k):
         first_row.append(mi_d)
     coeff_matrix.append(first_row)
     for i in range(k+1):
@@ -38,11 +38,8 @@ def solveGN(k):
                 row.append(-1*mi_d)
                 continue
             row.append(0)
-        coeff_matrix.append(row)
 
-    # testing
-    for i in coeff_matrix:
-        print(i)
+        coeff_matrix.append(row)
 
     ordinate = []
     ordinate.append(mi0)
@@ -50,15 +47,13 @@ def solveGN(k):
     ordinate.append(-0.15*mi0)
     for i in range(k-1):
         ordinate.append((-0.7/k)*mi0)
-    for i in ordinate:
-        print(i)
 
     a = numpy.array(coeff_matrix)
     b = numpy.array(ordinate)
     solution = numpy.linalg.solve(a, b)
     ret = [1]
     for i in solution:
-        ret.append(i)
+        ret.append(float(format_float(i)))
     return ret
 
 def solveB(x, n):
@@ -67,11 +62,33 @@ def solveB(x, n):
     lastG = [1] * len(x)
     for i in range(0, n):
         for j in range(1, len(x)):
-           G[j] = G[j] * x[j] + G[j-1]
+            G[j] = G[j] * x[j] + G[j-1]
     for j in range(1, len(x)):
         lastG[j] = G[j] * x[j] + lastG[j-1]
         G[j] /= lastG[j]
-    return G
+    return float(format_float(G[len(G)-1]))
+
+
+def get_j(x, n, index):
+    G = [0] * len(x)
+    G[0] = 1
+    lastG = [1] * len(x)
+    J = [1] * n
+    for i in range(0, n):
+        for j in range(1, len(x)):
+            G[j] = G[j] * x[j] + G[j - 1]
+            if j == index:
+                J[i] = G[j]
+    for j in range(1, len(x)):
+        lastG[j] = G[j] * x[j] + lastG[j - 1]
+        if j == index:
+            J[n-1] = G[j]
+        G[j] /= lastG[j]
+
+    ret = 0
+    for i in J:
+        ret += i/lastG[index]
+    return ret
 
 
 def exponential(b):
@@ -81,3 +98,11 @@ def exponential(b):
 def random():
     return numpy.random.random()
 
+
+def format_float(value):
+    return "%.6f" % value
+'''
+x = [1,1,2]
+n=6
+print(solveB(x, n))
+'''
