@@ -77,28 +77,7 @@ class Resource(Thread):
 
     def run(self):
         self.is_working = 1
-        '''
-        while self.is_working == 1:
-            if not self.queue.is_finished():
-                job = self.queue.take()
-                if job.is_dummy():
-                    print("Resource with id =", self.x, "is finished, time busy is ", self.elapsed_time)
-                    self.is_working = 0
-                    self.load_next_res_with_dummies()
-                else:
-                    self.jobs_done += 1
-                    self.elapsed_time += Num.exponential(self.beta)
-                    if (self.elapsed_time > self.total) or self.queue.is_finished():  # cpu is done
-                        print("Resource with id =", self.x, "is finished, time busy is ", self.elapsed_time)
-                        self.is_working = 0
-                        self.load_next_res_with_dummies()
-                    else:
-                        self.calc_next().accept_job(job)
-            else:
-                self.is_working = 0
-                print("Resource with id =", self.x, "is finished, time busy is ", self.elapsed_time)
-        # sim is done, checking jobs in queue
-        '''
+
         while self.is_working == 1:
             if not self.queue.is_finished():
                 job = self.queue.take()

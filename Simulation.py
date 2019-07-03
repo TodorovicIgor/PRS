@@ -3,17 +3,6 @@ import Resources, FileWriter, Num
 
 class Simulation:
     def __init__(self, n, k, time=1080):
-        '''
-        aux = input('Stepen multiprogramiranja: ')
-        self.n = int(aux)
-        cond = input('Podrazumevano vreme simulacije je 18h, promeniti ? [y/n] ')
-        if cond == 'y':
-            self.time = int(input('Unesite vreme simulacije u minutima: '))
-        else:
-            self.time = 1080
-        self.k = k
-        # self.time = 20
-        # self.n = 5'''
 
         # initializing
         self.CPU = Resources.CPU(0.005, time, 0)
